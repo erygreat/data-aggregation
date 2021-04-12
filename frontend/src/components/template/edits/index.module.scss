@@ -1,0 +1,59 @@
+@import '../base';
+@import '~@stylesheets/plugin.module.scss';
+
+.container {
+    height: calc(100% - #{$headHeight});
+    overflow: auto;
+    background: #fbfbfb;
+}
+.wrapper {
+    display: flex;
+    align-content: flex-start;
+    flex-wrap: wrap;
+    height: calc(100% - 20px);
+    margin: 10px;
+}
+$editItemHeadHeight: 30px;
+.edit-item {
+    width: #{$pluginWidth};
+    height: calc(#{$pluginHeight} + #{$editItemHeadHeight});
+    margin: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 0 5px #ddd;
+    background: #fff;
+    &.full-screen {
+        width: calc(100% - 40px);
+        height: calc(100% - 40px);
+    }
+    .head {
+        display: flex;
+        height: #{$editItemHeadHeight};
+        border-bottom: 1px solid #ddd;
+        padding: 0 10px;
+        line-height: #{$editItemHeadHeight};
+    }
+}
+
+
+.item-name {
+    position: relative;
+    height: 100%;
+    flex: 1;
+    .name-input {
+        position: absolute;
+        top: 10%;
+        width: 100%;
+        height: 80%;
+        outline: 0;
+        border: 1px solid #ccc;
+    }
+}
+.icon {
+    font-size: 14px;
+    margin: 7px 2px;
+    cursor: pointer;
+    &.drag {
+        cursor: all-scroll;
+    }
+}

@@ -1,0 +1,15 @@
+.item {
+    display: flex;
+    margin: 20px 0;
+}
+.label {
+    flex-basis: 100px;
+    text-align: right;
+}
+.value {
+    flex: 1;
+    margin-left: 10px;
+}
+.btn {
+    text-align: center;
+}
