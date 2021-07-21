@@ -30,10 +30,12 @@ const isComponentCanDrag = (component: React.ReactElement | string | number | {}
 interface MousePosition {
     left: number;
     top: number;
+    minLeft: number;
+    maxLeft: number;
+    minTop: number;
+    maxTop: number;
     startX: number;
     startY: number;
-    deltaX: number,
-    deltaY: number;
     moveX: number;
     moveY: number;
 }
@@ -45,6 +47,7 @@ const getLeft = (dom: HTMLElement): number => {
 const getTop = (dom: HTMLElement): number => {
     return dom.offsetTop - parseFloat(getComputedStyle(dom).getPropertyValue("margin-top"))
 }
+
 
 const DragSort: FC<DragSortProps> = (props: DragSortProps) => {
 
@@ -61,16 +64,23 @@ const DragSort: FC<DragSortProps> = (props: DragSortProps) => {
         const dom = Array.from(ref.current.children)[index] as HTMLElement
         needReRenderRef.current = true;
         dragDomRef.current = dom;
-        console.log(dom.scrollTop);
         mouseRef.current = {
             left: getLeft(dom),
             top: getTop(dom),
+            minLeft: 0,
+            maxLeft: ref.current.scrollWidth - dom.scrollWidth - parseFloat(getComputedStyle(dragDomRef.current).getPropertyValue("border-right")) - parseFloat(getComputedStyle(ref.current).getPropertyValue("margin-right")),
+            minTop: 0,
+            maxTop: ref.current.scrollHeight - dom.scrollHeight - parseFloat(getComputedStyle(dragDomRef.current).getPropertyValue("border-bottom")) - parseFloat(getComputedStyle(ref.current).getPropertyValue("margin-bottom")),
             startX: ev.clientX,
             startY: ev.clientY,
-            deltaX: 0,
-            deltaY: 0,
             moveX: 0,
             moveY: 0,
+        }
+    }
+
+    const disableWheel = (e: MouseEvent) => {
+        if(dragDomRef.current && mouseRef.current && ref.current) {
+            e.preventDefault();
         }
     }
 
@@ -113,40 +123,23 @@ const DragSort: FC<DragSortProps> = (props: DragSortProps) => {
     useEffect(() => {
         window.addEventListener("mousemove", (e: MouseEvent) => {
             if(dragDomRef.current && mouseRef.current && ref.current) {
-                // window.getSelection()?.removeAllRanges();
-                // let left = e.clientX - mouseRef.current.startX + mouseRef.current.left + mouseRef.current.deltaX;
-                // left = left < 0 ? 0 : left
-                // let top = e.clientY - mouseRef.current.startY + mouseRef.current.top + mouseRef.current.deltaY;
-                // top = top < 0 ? 0 : top
-                // const dom = dragDomRef.current;
-                // setStyle(dom, {
-                //     left: left + "px",
-                //     top: top + "px",
-                //     "z-index": 1
-                // });
-                // console.log("移动中");
-            }
-        })
-        window.addEventListener("wheel", (e: WheelEvent) => {
-            if(dragDomRef.current && mouseRef.current && ref.current) {
-                e.stopPropagation();
-                let deltaY = mouseRef.current.deltaY + e.deltaY
-                let deltaX = mouseRef.current.deltaX + e.deltaX
-                mouseRef.current.deltaX = deltaX < 0 ? 0 : deltaX;
-                mouseRef.current.deltaY = deltaY < 0 ? 0 : deltaY;
-                const left = mouseRef.current.deltaX + mouseRef.current.left + mouseRef.current.moveX;
-                const top = mouseRef.current.deltaY + mouseRef.current.top + mouseRef.current.moveY;
+                window.getSelection()?.removeAllRanges();
+                let left = e.clientX - mouseRef.current.startX + mouseRef.current.left;
+                left = left < mouseRef.current.minLeft ? mouseRef.current.minLeft : left;
+                left = left > mouseRef.current.maxLeft ? mouseRef.current.maxLeft : left;
+                let top = e.clientY - mouseRef.current.startY + mouseRef.current.top;
+                top = top < mouseRef.current.minTop ? mouseRef.current.minTop : top;
+                top = top > mouseRef.current.maxTop ? mouseRef.current.maxTop : top;
                 const dom = dragDomRef.current;
                 setStyle(dom, {
                     left: left + "px",
                     top: top + "px",
                     "z-index": 1
                 });
-                console.log(ref.current.scrollTop, ref.current.scrollHeight);
-                console.log(e.deltaY);
-                console.log("滚动中");
+                console.log("移动中");
             }
         })
+        window.addEventListener("wheel", disableWheel, { passive:false });
         window.addEventListener("mouseup", () => {
             if(dragDomRef.current) {
                 console.log("mouseup 移动完成");
@@ -159,6 +152,9 @@ const DragSort: FC<DragSortProps> = (props: DragSortProps) => {
                 dragDomRef.current = null;
             }
         })
+        return () => {
+            window.removeEventListener("wheel", disableWheel);
+        }
         
     }, []);
 
